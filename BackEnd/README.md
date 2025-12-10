@@ -13,14 +13,14 @@
 
 </div>
 
-## 🌟 Présentation
+##  Présentation
 
 VoiceGate est un assistant vocal intelligent capable de :
-- 🎤 **Reconnaître les locuteurs** via empreintes vocales (ECAPA-TDNN)
-- 📝 **Transcrire la parole** en texte avec Whisper
-- 💬 **Dialoguer intelligemment** avec reconnaissance d'intention
-- 🔊 **Répondre oralement** avec synthèse vocale multi-moteurs
-- ⚡ **Fonctionner en temps réel** via WebSocket
+-  **Reconnaître les locuteurs** via empreintes vocales (ECAPA-TDNN)
+-  **Transcrire la parole** en texte avec Whisper
+-  **Dialoguer intelligemment** avec reconnaissance d'intention
+-  **Répondre oralement** avec synthèse vocale multi-moteurs
+-  **Fonctionner en temps réel** via WebSocket
 
 **Architecture :** FastAPI + MongoDB + Whisper + WebSocket
 
@@ -72,7 +72,7 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8002
 gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app
 ```
 
-## 📁 Structure du Projet
+## Structure du Projet
 
 ```
 voicegate-backend/
@@ -91,7 +91,7 @@ voicegate-backend/
 │   └── audio_files/       # Fichiers audio 
 ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Variables d'environnement (.env)
 ```env
@@ -116,7 +116,7 @@ VOICE_DB_FOLDER=data/voice_embeddings
 AUDIO_STORAGE_PATH=data/audio_files
 ```
 
-## 🎯 Utilisation
+## Utilisation
 
 ### 1. Vérifier l'installation
 ```bash
@@ -167,7 +167,7 @@ tts_response = requests.post(
 print(f"Audio généré: {tts_response['audio_url']}")
 ```
 
-## 📡 Référence API
+##  Référence API
 
 ### Endpoints Principaux
 
@@ -177,36 +177,36 @@ print(f"Audio généré: {tts_response['audio_url']}")
 | **GET** | `/docs` | Documentation Swagger |
 | **GET** | `/health` | Santé du système |
 
-### 👤 Gestion Utilisateurs
+### Gestion Utilisateurs
 - `POST /api/users/` - Créer un utilisateur
 - `GET /api/users/` - Lister les utilisateurs
 - `GET /api/users/{username}` - Obtenir un utilisateur
 - `DELETE /api/users/{username}` - Supprimer un utilisateur
 
-### 🎤 Reconnaissance Vocale
+### Reconnaissance Vocale
 - `POST /api/voice/register` - Enregistrer empreinte vocale
 - `POST /api/voice/identify` - Identifier un locuteur
 
-### 📝 Transcription
+### Transcription
 - `POST /api/transcription/transcribe` - Transcrire audio
 - `POST /api/transcription/transcribe-base64` - Transcrire audio base64
 
-### 💬 Conversation
+### Conversation
 - `POST /api/voice-conversation/voice-ask` - Pipeline complet voix→réponse
 - `GET /api/voice-conversation/conversations/{user_id}/voice` - Historique
 
-### 🔊 Text-to-Speech
+### Text-to-Speech
 - `POST /api/tts/generate` - Générer audio depuis texte
 - `GET /api/tts/stream` - Stream audio en direct
 
-### ⚡ WebSocket Temps Réel
+### WebSocket Temps Réel
 - `WS /ws/ws/audio/{user_id}` - Streaming audio bidirectionnel
 - `WS /ws/ws/logs` - Logs temps réel
 - `WS /ws/ws/monitoring` - Métriques temps réel
 
 
 
-## 🐛 Dépannage
+## Dépannage
 
 ### Problèmes courants
 
@@ -243,7 +243,7 @@ print(f"Audio généré: {tts_response['audio_url']}")
    # Vérifier le dossier data/pretrained_models/
    ```
 
-## 📈 Monitoring
+## Monitoring
 
 ### Dashboard intégré
 - Accéder à: `http://127.0.0.1:8002/api/monitoring/metrics`
@@ -258,7 +258,7 @@ DEBUG=True
 tail -f logs/app.log
 ```
 
-## 🚀 Déploiement
+## Déploiement
 
 ### Docker
 ```dockerfile
@@ -297,14 +297,14 @@ volumes:
   mongodb_data:
 ```
 
-## 📚 Documentation Additionnelle
+## Documentation Additionnelle
 
 - [Guide Whisper](docs/whisper_guide.md)
 - [API Swagger](http://127.0.0.1:8002/docs)
 - [Schéma Base de Données](docs/database_schema.md)
 - [Architecture](docs/architecture.md)
 
-## 🤝 Contribution
+## Contribution
 
 1. Fork le projet
 2. Créer une branche (`git checkout -b feature/amazing`)
@@ -312,11 +312,8 @@ volumes:
 4. Push (`git push origin feature/amazing`)
 5. Ouvrir une Pull Request
 
-## 📄 Licence
 
-MIT License - Voir le fichier [LICENSE](LICENSE)
-
-## 🙏 Remerciements
+## Remerciements
 
 - [OpenAI Whisper](https://github.com/openai/whisper) pour la transcription
 - [SpeechBrain](https://speechbrain.github.io/) pour ECAPA-TDNN
@@ -331,6 +328,6 @@ MIT License - Voir le fichier [LICENSE](LICENSE)
   
 **VoiceGate** - Votre assistant vocal intelligent
 
-[⬆ Retour en haut](#voicegate-backend)
+[ Retour en haut](#voicegate-backend)
 
 </div>

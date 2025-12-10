@@ -51,7 +51,7 @@ class Settings(BaseModel):
     
     # Hugging Face Model (from first config)
     HF_MODEL_NAME: str = Field(default="openai-community/gpt2")
-    HF_TOKEN: str = Field(default="hf_xxx")
+    HF_TOKEN: str = Field(default="")
     MAX_CONTEXT_LENGTH: int = Field(default=1024)
     
     # Speaker Recognition
