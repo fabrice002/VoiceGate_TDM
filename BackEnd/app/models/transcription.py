@@ -1,3 +1,4 @@
+# app/models/transcription.py
 """
 Transcription data models
 """
@@ -25,19 +26,11 @@ class TranscriptionRequest(BaseModel):
     """
     Request for audio transcription
     """
-    success: bool = Field(..., description="Transcription success")
-    text: str = Field(..., description="Transcribed text")
-    language: str = Field(..., description="Detected language code")
-    duration: float = Field(..., description="Audio duration in seconds")
-    segments: List[TranscriptionSegment] = Field(default_factory=list, description="Segments")
-    confidence: Optional[float] = Field(None, ge=0.0, le=1.0, description="Overall confidence")
-    word_count: int = Field(..., description="Number of words in transcription")
-    processing_time: float = Field(..., description="Processing time in seconds")
-    model_info: Optional[Dict[str, Any]] = Field(None, description="Model information")
-    audio_analysis: Optional[Dict[str, Any]] = Field(None, description="Audio analysis results")
-    is_mock: bool = Field(default=False, description="Whether mock transcription was used")
-    original_format: str = Field(default="unknown", description="Original audio format")
-    converted_file: Optional[str] = Field(None, description="Path to converted WAV file (if kept)")
+    audio_base64: str = Field(..., description="Base64 encoded audio data")
+    audio_format: str = Field(default="wav", description="Audio format")
+    language: Optional[str] = Field(None, description="Language code")
+    task: str = Field(default="transcribe", description="Task type: transcribe or translate")
+    user_id: Optional[str] = Field(None, description="User ID for conversation history")
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -57,6 +50,8 @@ class TranscriptionResponse(BaseModel):
     model_info: Optional[Dict[str, Any]] = Field(None, description="Model information")
     audio_analysis: Optional[Dict[str, Any]] = Field(None, description="Audio analysis results")
     is_mock: bool = Field(default=False, description="Whether mock transcription was used")
+    original_format: str = Field(default="unknown", description="Original audio format")
+    converted_file: Optional[str] = Field(None, description="Path to converted WAV file (if kept)")
     
     model_config = ConfigDict(from_attributes=True)
 

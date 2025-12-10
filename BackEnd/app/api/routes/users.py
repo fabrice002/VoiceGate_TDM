@@ -1,8 +1,9 @@
+# app/api/routes/users.py
+
 from fastapi import APIRouter, HTTPException, Query
-from typing import List
 import logging
 
-from models.user import UserCreate, UserResponse, UserUpdate
+from models.user import UserCreate
 from schemas.responses import APIResponse
 
 logger = logging.getLogger(__name__)

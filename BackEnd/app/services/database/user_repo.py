@@ -1,3 +1,4 @@
+# app/services/database/user_repo.py
 """
 User database repository
 """
@@ -7,7 +8,7 @@ from datetime import datetime
 import logging
 
 from models.user import UserCreate, UserInDB, UserUpdate, UserResponse
-from core.database import db
+from core.database import get_db  # Use get_db instead of db directly
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,12 @@ class UserRepository:
     """
     
     def __init__(self):
-        self.collection = db.users
+        # Get database connection using get_db() to ensure it's initialized
+        self.db = get_db()
+        self.collection = self.db.users if hasattr(self.db, 'users') else None
+        
+        if self.collection is None:
+            logger.warning("Users collection not available. Database may not be properly initialized.")
     
     def create(self, user_data: UserCreate) -> Tuple[bool, Optional[UserInDB], str]:
         """
@@ -31,6 +37,11 @@ class UserRepository:
             Tuple[bool, Optional[UserInDB], str]: (success, user_object, message)
         """
         try:
+            # Check if collection is available
+            if self.collection is None:
+                logger.error("Database collection not available")
+                return False, None, "Database not available"
+            
             # Check if user exists
             existing = self.get_by_username(user_data.username)
             if existing:
@@ -75,8 +86,14 @@ class UserRepository:
             Optional[UserInDB]: User object if found, None otherwise
         """
         try:
+            if self.collection is None:
+                return None
+                
             user_doc = self.collection.find_one({"username": username.lower()})
             if user_doc:
+                # Ensure _id is converted to string
+                if "_id" in user_doc:
+                    user_doc["_id"] = str(user_doc["_id"])
                 return UserInDB(**user_doc)
             return None
         except Exception as e:
@@ -94,8 +111,14 @@ class UserRepository:
             Optional[UserInDB]: User object if found, None otherwise
         """
         try:
+            if self.collection is None:
+                return None
+                
             user_doc = self.collection.find_one({"_id": user_id})
             if user_doc:
+                # Ensure _id is converted to string
+                if "_id" in user_doc:
+                    user_doc["_id"] = str(user_doc["_id"])
                 return UserInDB(**user_doc)
             return None
         except Exception as e:
@@ -114,6 +137,9 @@ class UserRepository:
             bool: True if update successful, False otherwise
         """
         try:
+            if self.collection is None:
+                return False
+                
             result = self.collection.update_one(
                 {"username": username.lower()},
                 {
@@ -143,8 +169,16 @@ class UserRepository:
             List[UserInDB]: List of users
         """
         try:
+            if self.collection is None:
+                return []
+                
             cursor = self.collection.find().skip(skip).limit(limit)
-            users = [UserInDB(**doc) for doc in cursor]
+            users = []
+            for doc in cursor:
+                # Ensure _id is converted to string
+                if "_id" in doc:
+                    doc["_id"] = str(doc["_id"])
+                users.append(UserInDB(**doc))
             return users
         except Exception as e:
             logger.error(f"Error getting users: {e}")
@@ -162,6 +196,9 @@ class UserRepository:
             Tuple[bool, Optional[UserInDB], str]: (success, user_object, message)
         """
         try:
+            if self.collection is None:
+                return False, None, "Database not available"
+                
             user = self.get_by_username(username)
             if not user:
                 return False, None, f"User '{username}' not found"
@@ -209,6 +246,9 @@ class UserRepository:
             bool: True if deletion successful, False otherwise
         """
         try:
+            if self.collection is None:
+                return False
+                
             result = self.collection.delete_one({"username": username.lower()})
             return result.deleted_count > 0
         except Exception as e:
@@ -223,6 +263,9 @@ class UserRepository:
             List[str]: List of usernames
         """
         try:
+            if self.collection is None:
+                return []
+                
             users = self.collection.find(
                 {"is_voice_registered": True},
                 {"username": 1}

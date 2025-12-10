@@ -1,3 +1,5 @@
+# app/schemas/responses.py
+
 """
 Response schemas for API endpoints
 """
