@@ -24,7 +24,7 @@ VoiceGate est un assistant vocal intelligent capable de :
 
 **Architecture :** FastAPI + MongoDB + Whisper + WebSocket
 
-## 🚀 Installation Rapide
+## Installation Rapide
 
 ### Prérequis
 ```bash
