@@ -1,3 +1,4 @@
+# app/api/routes/db_check.py
 """
 Database health and data verification endpoints
 """

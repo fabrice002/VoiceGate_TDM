@@ -1,9 +1,11 @@
+# app/core/database.py
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 import logging
 import json
 import os
 from pathlib import Path
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +35,12 @@ class MockCollection:
                         for doc in self._documents:
                             if "_id" in doc:
                                 try:
-                                    doc_id = int(doc["_id"])
-                                    if doc_id > max_id:
-                                        max_id = doc_id
+                                    # Handle both string and numeric IDs
+                                    doc_id_str = str(doc["_id"])
+                                    if doc_id_str.replace('.', '', 1).isdigit():
+                                        doc_id = int(float(doc_id_str))
+                                        if doc_id > max_id:
+                                            max_id = doc_id
                                 except:
                                     pass
                         self._counter = max_id + 1
@@ -60,14 +65,12 @@ class MockCollection:
         if "_id" not in doc:
             doc["_id"] = str(self._counter)
             self._counter += 1
-        else:
-            doc["_id"] = str(doc["_id"])
         
         # Check unique indexes
         for field, unique in self._indexes.items():
             if unique and field in doc:
                 existing = self.find_one({field: doc[field]})
-                if existing and existing["_id"] != doc["_id"]:
+                if existing and existing.get("_id") != doc["_id"]:
                     raise Exception(f"Duplicate key error on field: {field}")
         
         self._documents.append(doc)
@@ -88,7 +91,13 @@ class MockCollection:
         for doc in self._documents:
             match = True
             for k, v in query.items():
-                if doc.get(k) != v:
+                doc_value = doc.get(k)
+                # Special handling for _id field
+                if k == "_id" and doc_value:
+                    if str(doc_value) != str(v):
+                        match = False
+                        break
+                elif doc_value != v:
                     match = False
                     break
             if match:
@@ -101,8 +110,20 @@ class MockCollection:
         if not query:
             results = [d.copy() for d in self._documents]
         else:
-            results = [d.copy() for d in self._documents 
-                      if all(d.get(k) == v for k, v in query.items())]
+            for doc in self._documents:
+                match = True
+                for k, v in query.items():
+                    doc_value = doc.get(k)
+                    # Special handling for _id field
+                    if k == "_id" and doc_value:
+                        if str(doc_value) != str(v):
+                            match = False
+                            break
+                    elif doc_value != v:
+                        match = False
+                        break
+                if match:
+                    results.append(doc.copy())
         
         if projection:
             results = [{k: d[k] for k in projection if k in d} for d in results]
@@ -113,12 +134,29 @@ class MockCollection:
         """Update document"""
         modified_count = 0
         for doc in self._documents:
-            if all(doc.get(k) == v for k, v in query.items()):
+            match = True
+            for k, v in query.items():
+                doc_value = doc.get(k)
+                if k == "_id" and doc_value:
+                    if str(doc_value) != str(v):
+                        match = False
+                        break
+                elif doc_value != v:
+                    match = False
+                    break
+            
+            if match:
                 if "$set" in update:
                     doc.update(update["$set"])
                 if "$inc" in update:
                     for key, value in update["$inc"].items():
                         doc[key] = doc.get(key, 0) + value
+                if "$push" in update:
+                    for key, value in update["$push"].items():
+                        if key not in doc:
+                            doc[key] = []
+                        if isinstance(doc[key], list):
+                            doc[key].append(value)
                 modified_count = 1
                 break
         
@@ -127,16 +165,28 @@ class MockCollection:
         
         # Create mock UpdateResult
         class UpdateResult:
-            def __init__(self, modified_count):
+            def __init__(self, matched_count, modified_count):
+                self.matched_count = matched_count
                 self.modified_count = modified_count
         
-        return UpdateResult(modified_count)
+        return UpdateResult(1 if modified_count else 0, modified_count)
     
     def delete_one(self, query: Dict) -> Any:
         """Delete document"""
         deleted_count = 0
         for i, doc in enumerate(self._documents):
-            if all(doc.get(k) == v for k, v in query.items()):
+            match = True
+            for k, v in query.items():
+                doc_value = doc.get(k)
+                if k == "_id" and doc_value:
+                    if str(doc_value) != str(v):
+                        match = False
+                        break
+                elif doc_value != v:
+                    match = False
+                    break
+            
+            if match:
                 self._documents.pop(i)
                 deleted_count = 1
                 self._save_data()
@@ -153,8 +203,30 @@ class MockCollection:
         """Count documents"""
         if not query:
             return len(self._documents)
-        return sum(1 for d in self._documents 
-                  if all(d.get(k) == v for k, v in query.items()))
+        
+        count = 0
+        for doc in self._documents:
+            match = True
+            for k, v in query.items():
+                doc_value = doc.get(k)
+                if k == "_id" and doc_value:
+                    if str(doc_value) != str(v):
+                        match = False
+                        break
+                elif doc_value != v:
+                    match = False
+                    break
+            if match:
+                count += 1
+        return count
+    
+    def create_index(self, indexes, **kwargs):
+        """Create index"""
+        for index in indexes:
+            if isinstance(index, tuple) and len(index) == 2:
+                field, direction = index
+                self._indexes[field] = kwargs.get('unique', False)
+        return True
 
 
 class MockCursor:
@@ -164,18 +236,32 @@ class MockCursor:
         self._documents = documents
     
     def sort(self, *args, **kwargs):
+        """Sort results"""
+        if args and isinstance(args[0], list):
+            sort_spec = args[0]
+            for field, direction in reversed(sort_spec):
+                reverse = direction == -1
+                self._documents.sort(key=lambda x: x.get(field, None), reverse=reverse)
         return self
     
     def limit(self, n: int):
+        """Limit results"""
         self._documents = self._documents[:n]
         return self
     
     def skip(self, n: int):
+        """Skip results"""
         self._documents = self._documents[n:]
         return self
     
     def __iter__(self):
         return iter(self._documents)
+    
+    def __next__(self):
+        return next(iter(self._documents))
+    
+    def __len__(self):
+        return len(self._documents)
 
 
 class MockDatabase:
@@ -183,7 +269,7 @@ class MockDatabase:
     
     def __init__(self):
         self._collections = {}
-        self._connected = False  # Add _connected attribute for mock
+        self._connected = False
         self._init_collections()
     
     def _init_collections(self):
@@ -191,6 +277,7 @@ class MockDatabase:
         self._collections["users"] = MockCollection("users")
         self._collections["conversations"] = MockCollection("conversations")
         self._collections["voice_samples"] = MockCollection("voice_samples")
+        self._collections["voice_commands"] = MockCollection("voice_commands")
     
     def __getattr__(self, name: str):
         """Get collection dynamically"""
@@ -206,6 +293,11 @@ class MockDatabase:
         if name not in self._collections:
             self._collections[name] = MockCollection(name)
         return self._collections[name]
+    
+    @property
+    def is_connected(self):
+        """Mock connection status"""
+        return self._connected
 
 
 class DatabaseConnection:
@@ -230,7 +322,7 @@ class DatabaseConnection:
         
         if settings.USE_MONGODB and settings.MONGODB_URI:
             try:
-                from pymongo import MongoClient, ASCENDING
+                from pymongo import MongoClient
                 from pymongo.server_api import ServerApi
                 
                 logger.info(f"Attempting to connect to MongoDB at {settings.MONGODB_URI}...")
@@ -246,13 +338,13 @@ class DatabaseConnection:
                 self._db = self._client[settings.MONGO_DB_NAME]
                 self._connected = True
                 
-                logger.info(f"✓ Connected to MongoDB: {settings.MONGO_DB_NAME}")
+                logger.info(f"Connected to MongoDB: {settings.MONGO_DB_NAME}")
                 self._create_indexes()
                 
                 return self._db
                 
             except Exception as e:
-                logger.warning(f"✗ MongoDB connection failed: {e}")
+                logger.warning(f"MongoDB connection failed: {e}")
                 logger.info("Falling back to mock database with file persistence")
                 self._db = MockDatabase()
                 self._connected = False
@@ -273,7 +365,8 @@ class DatabaseConnection:
             _ = self._db.users
             _ = self._db.voice_samples
             _ = self._db.conversations
-            logger.info("✓ All collections initialized")
+            _ = self._db.voice_commands
+            logger.info("All collections initialized")
         except Exception as e:
             logger.error(f"Error ensuring collections: {e}")
     
@@ -295,6 +388,12 @@ class DatabaseConnection:
                 ("timestamp", -1)
             ])
             
+            # Voice commands indexes
+            self._db.voice_commands.create_index([
+                ("user_id", ASCENDING),
+                ("timestamp", -1)
+            ])
+            
             logger.info("Database indexes created")
             
         except Exception as e:
@@ -310,8 +409,21 @@ class DatabaseConnection:
     def is_connected(self) -> bool:
         """Check if connected to MongoDB"""
         return self._connected
+    
+    @property
+    def db(self):
+        """Get database instance"""
+        return self._db
 
 
 # Global instance
 db_connection = DatabaseConnection()
 db = None  # Will be initialized in main.py
+
+# Add this function to ensure db is always available
+def get_db():
+    """Get database instance, initializing if necessary"""
+    global db
+    if db is None:
+        db = db_connection.connect()
+    return db

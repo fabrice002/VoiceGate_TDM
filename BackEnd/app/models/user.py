@@ -1,3 +1,5 @@
+# app/models/user.py
+
 """
 User data models with Pydantic V2 compatibility
 """
@@ -5,7 +7,7 @@ User data models with Pydantic V2 compatibility
 from pydantic import BaseModel, Field, field_validator, ConfigDict, EmailStr
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from enum import Enum
+
 
 from core.constants import UserRole, UserStatus
 
