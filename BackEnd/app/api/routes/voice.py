@@ -9,8 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/register")
-def register_voice(
-    username: str = Form(...),
+async def register_voice(
+    user_id: str = Form(...),    # 1. On accepte str car FormData envoie tout en texte
+    username: str = Form(None),  # 2. On accepte le username (optionnel) pour éviter le crash
     file: UploadFile = File(...)
 ):
     """Register user voice"""
@@ -23,13 +24,32 @@ def register_voice(
         biometrics = VoiceBiometricsService()
         audio_proc = AudioProcessor()
         
-        # Get user
-        user = user_repo.get_by_username(username)
-        if not user:
-            raise HTTPException(status_code=404, detail=f"User '{username}' not found")
+        # 3. Conversion intelligente de l'ID (String -> Int si nécessaire)
+        # Si votre DB utilise des entiers (ID: 5), ceci est nécessaire
+        try:
+            uid = int(user_id)
+        except ValueError:
+            uid = user_id # On garde en string si c'est un ObjectId (MongoDB)
+
+        # 4. Récupération de l'utilisateur
+        user = user_repo.get_by_id(uid)
         
+        if not user:
+            # Fallback : Si on ne trouve pas par ID, on essaie par username si fourni
+            if username:
+                user = user_repo.get_by_username(username)
+            
+            if not user:
+                raise HTTPException(status_code=404, detail=f"User '{user_id}' not found")
+        
+        # 5. Définition explicite du nom d'utilisateur pour la suite
+        # C'est ici que l'erreur "name 'username' is not defined" est corrigée
+        target_username = user.username 
+
+        print(f"Processing voice for user: {target_username} (ID: {uid})") # Debug log sûr
+
         # Read audio
-        audio_bytes = file.file.read()
+        audio_bytes = await file.read() # Note: 'await' est mieux avec UploadFile async
         audio_data = audio_proc.bytes_to_audio_array(audio_bytes)
         
         # Extract embedding
@@ -37,14 +57,15 @@ def register_voice(
         if embedding is None:
             raise HTTPException(status_code=400, detail="Failed to extract voice features")
         
-        # Save
-        success = user_repo.update_voice_embedding(username, embedding.tolist())
+        # Save using the safe variable 'target_username'
+        success = user_repo.update_voice_embedding(target_username, embedding.tolist())
+        
         if not success:
-            raise HTTPException(status_code=500, detail="Failed to save voice")
+            raise HTTPException(status_code=500, detail="Failed to save voice to database")
         
         return {
             "success": True,
-            "username": username,
+            "username": target_username,
             "message": "Voice registered successfully",
             "embedding_length": len(embedding)
         }
@@ -53,12 +74,16 @@ def register_voice(
         raise
     except Exception as e:
         logger.error(f"Error registering voice: {e}")
+        # Affiche l'erreur exacte dans la réponse pour déboguer
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/identify")
-def identify_voice(file: UploadFile = File(...)):
-    """Identify speaker from voice"""
+async def identify_voice(
+    file: UploadFile = File(...),
+    username: str = Form(None) # <--- AJOUT : On accepte le username
+):
+    """Identify speaker or Verify specific user"""
     try:
         from services.database.user_repo import UserRepository
         from services.ai.biometrics import VoiceBiometricsService
@@ -68,43 +93,60 @@ def identify_voice(file: UploadFile = File(...)):
         biometrics = VoiceBiometricsService()
         audio_proc = AudioProcessor()
         
-        # Read audio
-        audio_bytes = file.file.read()
-        audio_data = audio_proc.bytes_to_audio_array(audio_bytes)
+        # 1. Traitement Audio (WebM -> Array) - UTILISATION LIBROSA ROBUSTE
+        import tempfile
+        import os
+        import librosa
         
-        # Extract embedding
+        # Sauvegarde temporaire pour lecture fiable par Librosa
+        with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as tmp:
+            tmp_name = tmp.name
+            content = await file.read()
+            tmp.write(content)
+            tmp.flush()
+            
+        try:
+            # Chargement audio (16k est le standard pour la biométrie)
+            audio_data, _ = librosa.load(tmp_name, sr=16000)
+        finally:
+            if os.path.exists(tmp_name):
+                try: os.unlink(tmp_name)
+                except: pass
+
+        # 2. Extraction Empreinte
         test_embedding = biometrics.extract_embedding(audio_data)
         if test_embedding is None:
-            raise HTTPException(status_code=400, detail="Failed to extract voice features")
-        
-        # Compare with all users
-        registered_users = user_repo.get_voice_registered_users()
-        best_match = None
-        best_score = 0.0
-        
-        for uname in registered_users:
-            user = user_repo.get_by_username(uname)
-            if user and user.voice_embedding:
-                ref_emb = np.array(user.voice_embedding)
-                score = biometrics.compare_embeddings(ref_emb, test_embedding)
-                
-                if score > best_score:
-                    best_score = score
-                    best_match = user
-        
-        if best_match and best_score >= biometrics.threshold:
-            return {
-                "identified": True,
-                "username": best_match.username,
-                "confidence": best_score,
-                "user_id": best_match.id
-            }
-        else:
-            return {
-                "identified": False,
-                "message": "No matching user found",
-                "best_score": best_score
-            }
+            raise HTTPException(status_code=400, detail="Voix non détectée dans l'audio")
+
+        # === MODE VÉRIFICATION (1:1) ===
+        if username:
+            user = user_repo.get_by_username(username)
+            if not user or not user.voice_embedding:
+                return {"identified": False, "message": "User has no voice print"}
+            
+            ref_emb = np.array(user.voice_embedding)
+            score = biometrics.compare_embeddings(ref_emb, test_embedding)
+            
+            logger.info(f"Verification Score for {username}: {score} (Threshold: {biometrics.threshold})")
+            
+            # Note: Pour la vérification 1:1, on peut être un peu plus tolérant ou strict selon besoin
+            if score >= biometrics.threshold:
+                return {
+                    "identified": True,
+                    "username": user.username,
+                    "user_id": user.id,
+                    "confidence": score,
+                    "mode": "verification"
+                }
+            else:
+                return {
+                    "identified": False, 
+                    "message": "Voice mismatch",
+                    "confidence": score
+                }
+
+        # === MODE IDENTIFICATION (1:N) - Ancien code === 
+        registered_users = user_repo.get_voice_registered_users() 
             
     except HTTPException:
         raise

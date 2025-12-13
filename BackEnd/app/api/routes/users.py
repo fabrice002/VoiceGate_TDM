@@ -80,24 +80,36 @@ def get_user(username: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.delete("/{username}")
-def delete_user(username: str):
-    """Delete user"""
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(user_id: str):
+    """
+    Supprime un utilisateur et ses données associées.
+    """
     try:
-        from services.database.user_repo import UserRepository
         user_repo = UserRepository()
         
-        success = user_repo.delete(username)
-        if not success:
+        # 1. Vérifier si l'utilisateur existe
+        user = user_repo.get_by_id(user_id)
+        if not user:
             raise HTTPException(status_code=404, detail="User not found")
+            
+        # 2. Supprimer l'utilisateur
+        # Assurez-vous que votre UserRepository a une méthode delete !
+        # Si elle n'existe pas, voici à quoi elle ressemblerait :
+        # db.users.delete_one({"_id": user_id})
+        success = user_repo.delete_user(user_id)
         
-        return APIResponse(
-            success=True,
-            message=f"User '{username}' deleted"
-        )
-        
+        if not success:
+             raise HTTPException(status_code=500, detail="Failed to delete user")
+             
+        # Optionnel : Nettoyer les conversations orphelines ici
+        conversation_repo.delete_all_for_user(user_id)
+
+        return None # 204 No Content
+
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error deleting user: {e}")
+        # Logger l'erreur réelle
+        print(f"Error deleting user: {e}")
         raise HTTPException(status_code=500, detail=str(e))

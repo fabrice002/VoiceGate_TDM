@@ -1,37 +1,47 @@
 # ============================================
-# VoiceGate AI Assistant - Requirements
+# VoiceGate AI Assistant - Requirements (Fixed)
 # ============================================
 
 # ---------------------------
 # Core Framework
 # ---------------------------
-fastapi==0.122.0
-uvicorn[standard]==0.38.0
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart  # Indispensable pour l'upload de fichiers (UploadFile)
 
 # ---------------------------
 # Audio Processing
 # ---------------------------
-openai-whisper==20250625   
-ffmpeg-python==0.2.0       
-moviepy==2.2.1             
-librosa==0.11.0            
-soundfile==0.13.1          
-numpy==2.3.5
-SpeechRecognition==3.14.4
-sounddevice==0.5.3
+# Whisper pour la transcription
+openai-whisper>=20231117
+
+# Outils audio de base
+ffmpeg-python>=0.2.0
+librosa>=0.10.1
+soundfile>=0.12.1
+numpy>=1.26.0  # On laisse pip gérer la compatibilité (éviter le conflit numpy 2.x vs libs)
+resampy>=0.4.3 # Vital pour librosa
 
 # ---------------------------
-# AI/ML Models
+# AI/ML Models (Biometrics)
 # ---------------------------
-torch==2.9.1
-torchaudio==2.9.1
-speechbrain==0.5.14 
+# Torch stable
+torch>=2.2.0
+torchaudio>=2.2.0
+
+# SpeechBrain MODERNE (compatible Torch 2.x)
+speechbrain>=1.0.0 
+
+# Hugging Face
+transformers>=4.39.0
+huggingface_hub>=0.22.0
+accelerate # Recommandé pour charger les modèles efficacement
 
 # ---------------------------
 # Database & Utilities
 # ---------------------------
-pydantic==2.12.5
-pymongo==3.12.0
-python-dotenv==1.2.1
-aiofiles==25.1.0
-gtts==2.5.4
+pydantic>=2.7.0
+pymongo>=4.6.0
+python-dotenv>=1.0.0
+aiofiles>=23.2.0
+gtts>=2.5.1

@@ -45,10 +45,8 @@ class ConversationMessage(BaseModel):
         """Convert _id to id if needed"""
         if v is None:
             return v
-        # If it's a dict with _id, extract it
         if isinstance(v, dict) and '_id' in v:
             return str(v['_id'])
-        # If it's already a string or ObjectId, convert to string
         return str(v)
 
 
@@ -79,10 +77,8 @@ class Conversation(BaseModel):
         """Convert _id to id if needed"""
         if v is None:
             return v
-        # If it's a dict with _id, extract it
         if isinstance(v, dict) and '_id' in v:
             return str(v['_id'])
-        # If it's already a string or ObjectId, convert to string
         return str(v)
 
 
@@ -90,22 +86,27 @@ class VoiceAskRequest(BaseModel):
     """Request for AI conversation from voice input"""
     user_id: str = Field(..., description="User ID")
     transcribed_text: str = Field(..., description="Text from voice transcription")
-    audio_duration: Optional[float] = Field(None, description="Audio duration in seconds")
+    audio_duration: Optional[float] = Field(0.0, description="Audio duration in seconds")
     audio_file_path: Optional[str] = Field(None, description="Path to audio file")
     transcription_confidence: Optional[float] = Field(None, ge=0.0, le=1.0)
-    language: Optional[str] = Field(None, description="Language code")
+    language: Optional[str] = Field("fr", description="Language code")
     conversation_id: Optional[str] = Field(None, description="Existing conversation ID")
 
 
 class VoiceAskResponse(BaseModel):
     """Response for voice-based AI conversation"""
-    success: bool = Field(..., description="Request success")
-    conversation_id: str = Field(..., description="Conversation ID")
-    user_message_id: str = Field(..., description="User message ID")
-    ai_message_id: str = Field(..., description="AI response message ID")
-    transcribed_text: str = Field(..., description="Original transcribed text")
+    success: bool = Field(True, description="Request success")
+    conversation_id: Optional[str] = Field(None, description="Conversation ID")
+    user_message_id: Optional[str] = Field(None, description="User message ID")
+    ai_message_id: Optional[str] = Field(None, description="AI response message ID")
+    transcribed_text: Optional[str] = Field(None, description="Original transcribed text")
     ai_response: str = Field(..., description="AI response text")
+    
+    # --- AJOUT CRUCIAL ICI ---
+    audio_url: Optional[str] = Field(None, description="URL to the generated TTS audio file")
+    # -------------------------
+    
     language: Optional[str] = Field(None, description="Language used")
-    message_count: int = Field(..., description="Total messages in conversation")
-    processing_time: float = Field(..., description="Total processing time")
+    message_count: int = Field(0, description="Total messages in conversation")
+    processing_time: float = Field(0.0, description="Total processing time")
     metadata: Dict[str, Any] = Field(default_factory=dict)

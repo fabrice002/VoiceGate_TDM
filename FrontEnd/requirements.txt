@@ -1,0 +1,18 @@
+react
+react-dom
+@reduxjs/toolkit
+react-redux
+axios
+react-router-dom
+react-icons
+react-media-recorder
+@headlessui/react
+clsx
+tailwind-merge
+
+# Dev dependencies
+tailwindcss
+postcss
+autoprefixer
+vite
+@vitejs/plugin-react

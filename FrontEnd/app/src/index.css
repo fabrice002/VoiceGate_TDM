@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Scrollbar du Template - Copié depuis style.css */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #354867;
+}
+::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Utilitaire pour l'animation des barres audio */
+.waveform-bar {
+  transition: height 0.1s ease;
+  min-height: 10%;
+}
+
+/* Texte en noir par défaut */
+* {
+  color: #000000;
+}
+
+/* Pour s'assurer que le texte reste noir même dans différents états */
+body, 
+h1, h2, h3, h4, h5, h6,
+p, span, div,
+a, button, input, textarea,
+label, li {
+  color: #000000;
+}
+
+/* S'assurer que les liens ne changent pas de couleur au survol */
+a:hover {
+  color: #000000 !important;
+}

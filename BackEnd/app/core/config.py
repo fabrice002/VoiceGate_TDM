@@ -60,6 +60,10 @@ class Settings(BaseModel):
     MAX_VOICE_SAMPLES: int = Field(default=10)
     
     
+    WAKE_WORD: str = Field(default="voicegate")  # Le mot magique (en minuscule)
+    REQUIRE_WAKE_WORD: bool = Field(default=True)
+    WAKE_WORD_SESSION_TIMEOUT: int = Field(default=240)
+    
     
     # Audio Processing
     SAMPLE_RATE: int = Field(default=16000)
@@ -129,6 +133,9 @@ class Settings(BaseModel):
             "DEFAULT_SPEED": ("DEFAULT_SPEED", float),
             "DEFAULT_VOLUME": ("DEFAULT_VOLUME", float),
             "MAX_FILE_SIZE": ("MAX_FILE_SIZE", int),
+            "WAKE_WORD_SESSION_TIMEOUT": ("WAKE_WORD_SESSION_TIMEOUT", int),
+            "WAKE_WORD": ("WAKE_WORD", str),
+            "REQUIRE_WAKE_WORD": ("REQUIRE_WAKE_WORD", bool),
         }
         
         # Handle ALLOWED_AUDIO_FORMATS specially
