@@ -18,7 +18,7 @@
 
 </div>
 
----
+
 
 ##  Overview
 
@@ -35,7 +35,7 @@ Unlike standard assistants, VoiceGate verifies **who** is speaking before proces
 | **AI Core** | **Speech-to-Text**: Powered by OpenAI Whisper.<br>**Intent Recognition**: Context-aware dialogue.<br>**TTS**: Natural sounding Text-to-Speech responses. |
 | **Interface** | **Real-time Visualization**: Dynamic audio waveforms.<br>**History**: Persistent conversation logs.<br>**Modern UI**: Dark mode, responsive design built with Tailwind. |
 
----
+
 
 ##  Project Architecture
 
@@ -54,7 +54,7 @@ VoiceGate/
     └── src/services/      # API Connectors
 ````
 
------
+
 
 ## Installation Guide
 
@@ -63,7 +63,7 @@ VoiceGate/
   * **System**: Python 3.9+, Node.js v16+, FFmpeg installed on system path.
   * **Database**: MongoDB (optional, can run with Mock DB).
 
------
+
 
 ### Part 1: Backend Setup 
 
@@ -99,7 +99,7 @@ VoiceGate/
 
     *Backend is now running at `http://localhost:8002`*
 
------
+
 
 ### Part 2: Frontend Setup 
 
@@ -130,7 +130,7 @@ VoiceGate/
 
     *Frontend is now running at `http://localhost:5173`*
 
------
+
 
 ##  Usage
 
@@ -145,7 +145,7 @@ VoiceGate/
       *  **Upload**: Click the paperclip to analyze audio files.
       *  **Text**: Type naturally to interact with the AI.
 
------
+
 
 ## Tech Stack
 
@@ -163,7 +163,7 @@ VoiceGate/
   * **Styling**: Tailwind CSS, Headless UI, React Icons
   * **Audio**: React Media Recorder
 
------
+
 
 ##  API Reference
 
@@ -177,7 +177,7 @@ Once the backend is running, full Swagger documentation is available at:
   * `POST /api/voice-conversation/voice-ask` - Full pipeline (STT -\> AI -\> TTS).
   * `GET /api/conversations/{id}/history` - Retrieve chat history.
 
------
+
 
 ##  Docker Deployment
 
@@ -207,7 +207,7 @@ services:
 
 Run: `docker-compose up --build`
 
------
+
 
 ##  Contributing
 
@@ -219,4 +219,4 @@ Contributions are welcome\!
 4.  Push to branch (`git push origin feature/NewFeature`).
 5.  Open a Pull Request.
 
------
+

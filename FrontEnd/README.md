@@ -14,25 +14,25 @@
 
 </div>
 
-## 🚀 Présentation
+##  Présentation
 
 VoiceGate Frontend est l'interface utilisateur moderne conçue pour interagir avec l'assistant vocal VoiceGate. Elle offre une expérience fluide centrée sur la voix et la sécurité.
 
 **Fonctionnalités principales :**
-- 🔒 **Authentification Biométrique** : Connexion et inscription sécurisées par empreinte vocale.
-- 🎙️ **Chat Multimodal** :
+-  **Authentification Biométrique** : Connexion et inscription sécurisées par empreinte vocale.
+-  **Chat Multimodal** :
   - Enregistrement vocal en temps réel.
   - **Upload de fichiers audio** (WAV, MP3, WebM).
   - Saisie textuelle classique.
-- 🔊 **Synthèse Vocale (TTS)** : Lecture automatique des réponses de l'IA.
-- 🌊 **Visualisation Audio** : Waveform dynamique lors de l'enregistrement.
-- 💾 **Historique Persistant** : Reprise des conversations précédentes.
+-  **Synthèse Vocale (TTS)** : Lecture automatique des réponses de l'IA.
+-  **Visualisation Audio** : Waveform dynamique lors de l'enregistrement.
+-  **Historique Persistant** : Reprise des conversations précédentes.
 
 **Architecture :** React + Vite + Redux Toolkit + Tailwind CSS
 
 ---
 
-## ⚡ Installation Rapide
+##  Installation Rapide
 
 ### Prérequis
 ```bash
@@ -77,9 +77,9 @@ npm run dev
 
 L'application sera accessible sur `http://localhost:5173`.
 
------
 
-## 📂 Structure du Projet
+
+##  Structure du Projet
 
 ```text
 voicegate-frontend/
@@ -100,9 +100,9 @@ voicegate-frontend/
 └── package.json            # Dépendances et scripts
 ```
 
------
 
-## 🎮 Utilisation
+
+##  Utilisation
 
 ### 1\. Authentification
 
@@ -127,9 +127,9 @@ Une fois connecté, accédez à l'interface de chat :
 | **Upload** | Envoi de fichiers audio pré-enregistrés |
 | **Settings** | Supprimer l'historique ou le compte utilisateur |
 
------
 
-## 🔌 Intégration Backend
+
+##  Intégration Backend
 
 Ce frontend consomme les endpoints suivants du Backend VoiceGate :
 
@@ -141,9 +141,9 @@ Ce frontend consomme les endpoints suivants du Backend VoiceGate :
 | **POST** | `/voice-conversation/text-ask` | Chat textuel classique |
 | **GET** | `/conversations/{id}/last/messages` | Récupération de l'historique |
 
------
 
-## 🐳 Déploiement (Docker)
+
+##  Déploiement (Docker)
 
 Pour déployer l'application en production avec Nginx :
 
@@ -173,9 +173,9 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
------
 
-## 🤝 Contribution
+
+##  Contribution
 
 1.  Forkez le projet
 2.  Créez votre branche (`git checkout -b feature/AmazingFeature`)
@@ -183,13 +183,4 @@ CMD ["nginx", "-g", "daemon off;"]
 4.  Push vers la branche (`git push origin feature/AmazingFeature`)
 5.  Ouvrez une Pull Request
 
------
 
-\<div align="center"\>
-
-**VoiceGate Frontend** - Interface React Moderne
-
-
-\</div\>
-
-```
