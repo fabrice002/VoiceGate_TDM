@@ -1,10 +1,12 @@
 # app/api/routes/users.py
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, status
 import logging
 
 from models.user import UserCreate
 from schemas.responses import APIResponse
+from services.database.user_repo import UserRepository
+from services.database.conversation_repo import ConversationRepository
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -14,7 +16,7 @@ router = APIRouter()
 def create_user(user_data: UserCreate):
     """Create new user"""
     try:
-        from services.database.user_repo import UserRepository
+        
         user_repo = UserRepository()
         
         success, user, message = user_repo.create(user_data)
@@ -87,6 +89,7 @@ async def delete_user(user_id: str):
     """
     try:
         user_repo = UserRepository()
+        conversation_repo = ConversationRepository()
         
         # 1. Vérifier si l'utilisateur existe
         user = user_repo.get_by_id(user_id)
